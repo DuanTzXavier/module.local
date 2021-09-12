@@ -1,0 +1,29 @@
+rootProject.name = "module.local"
+include ':app'
+
+
+def localModuleFile = new File(rootDir, "module.local")
+if (!localModuleFile.exists()) {
+    return
+}
+
+println "配置本地项目"
+localModuleFile.each {
+    if ("" == it || it.startsWith("//") || it.startsWith("#")) {
+        // skip
+    } else {
+        String[] names = it.split("=>").collect { it.trim() }
+        if (names.length >= 2) {
+            String moduleName = names[0]
+            String path = names[1]
+            println "找到模块:$moduleName,路径:$path"
+            if (! new File(path).exists()) {
+                println "路径:$path 未找到"
+            }
+            String projectName = path.find("[^/]*\$")
+            println "ProjectName: $projectName"
+            include ":${projectName}"
+            project(":${projectName}").projectDir = new File(path)
+        }
+    }
+}
